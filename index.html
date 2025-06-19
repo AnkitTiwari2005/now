@@ -39,13 +39,13 @@
         /* Ensure HTML and Body take full width and handle overflow */
         html {
             width: 100%;
-            height: 100%; /* Important for consistent sizing */
+            height: 100%; /* Important for consistent sizing across devices */
             overflow-x: hidden; /* Prevent horizontal scrolling at the root level */
         }
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Universal box-sizing for consistent layout */
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
@@ -59,6 +59,7 @@
             overflow-x: hidden; /* Ensure no horizontal scrollbar */
             backdrop-filter: blur(20px);
             width: 100%; /* Explicitly set body width */
+            min-width: 320px; /* Prevent layout from breaking on extremely small screens */
         }
 
         body.dark-mode {
@@ -191,7 +192,7 @@
 
         @media (max-width: 900px) {
             .dashboard {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr; /* Stack main content and sidebar vertically */
                 gap: 20px; /* Adjusted gap for mobile */
             }
         }
@@ -200,6 +201,10 @@
             display: flex;
             flex-direction: column;
             gap: 30px;
+        }
+
+        .sidebar {
+            width: 100%; /* Ensure sidebar takes full width on mobile */
         }
 
         .card {
@@ -396,6 +401,8 @@
 
         .result-container {
             margin-top: 30px;
+            overflow-x: auto; /* Enable horizontal scrolling for tables on small screens */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
 
         .result-header {
@@ -406,7 +413,8 @@
         }
 
         table {
-            width: 100%;
+            width: 100%; /* Table always attempts to take 100% width of its container */
+            min-width: 500px; /* Ensure table doesn't get too squished before scrolling */
             border-collapse: collapse;
             border-radius: 12px;
             overflow: hidden;
@@ -417,6 +425,7 @@
             padding: 16px 20px;
             text-align: left;
             border-bottom: 1px solid var(--border-light);
+            white-space: nowrap; /* Prevent text wrapping in table headers/cells if possible */
         }
 
         body.dark-mode th,
