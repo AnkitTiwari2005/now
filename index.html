@@ -44,12 +44,13 @@
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* CRITICAL: Prevent Global Horizontal Scroll and ensure full width on the root */
+        /* CRITICAL: Prevent Global Horizontal Scroll and ensure full width */
         html, body {  
             width: 100%;  
             max-width: 100vw;  
             overflow-x: hidden;
-            height: 100%; /* Ensure 100% height for consistent sizing across devices */
+            /* Ensure 100% height for consistent sizing across devices */
+            height: 100%;
         }
 
         body {
@@ -67,14 +68,27 @@
             color: var(--text-dark);
         }
 
-        /* Desktop: Centered container with max-width - RESTORED */
-        .container {  
-            max-width: 1200px;  
-            margin: 0 auto;  
+        /* Make All Containers Responsive */
+        .container, .dashboard, .main-content, .sidebar, .card, .result-container {  
+            max-width: 100%;  
+            width: 100%;  
+            box-sizing: border-box;
+        }
+
+        .container {
+            margin: 0 auto;
             position: relative;
-            z-index: 2;  
+            z-index: 2;
             padding: 0 20px; /* Default horizontal padding for desktop */
-            width: 100%; /* Allow container to shrink below 1200px on narrower desktop windows */
+        }
+
+        /* Desktop: Centered container with max-width */
+        @media (min-width: 901px) {  
+            .container {    
+                max-width: 1400px;    /* Increased from 1200px to 1400px for wider desktop layout */
+                margin: 0 auto;    
+                padding: 0 20px; /* Restore desktop padding */
+            }
         }
 
         .bg-blob {
@@ -143,7 +157,7 @@
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
         }
 
-        /* Logo text for desktop - now allows natural wrapping, no ellipsis */
+        /* Logo text now reverts to default wrapping on larger screens */
         .logo-text {
             font-size: 28px;
             font-weight: 800;
@@ -152,6 +166,7 @@
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            /* Removed white-space, overflow, text-overflow from global for desktop */
         }
 
         .theme-toggle {
@@ -190,7 +205,6 @@
             background: var(--success);
         }
 
-        /* Dashboard grid for desktop - RESTORED */
         .dashboard {
             display: grid;
             grid-template-columns: 1fr 350px;
@@ -198,13 +212,8 @@
             margin-bottom: 30px;
         }
 
-        /* Mobile Layout - DO NOT CHANGE */
+        /* Mobile Layout */
         @media (max-width: 900px) {
-            /* Ensure all main layout containers take full width on mobile */
-            .container, .dashboard, .main-content, .sidebar, .card, .result-container {
-                width: 100%;
-                max-width: 100%;
-            }
             .dashboard {
                 grid-template-columns: 1fr; /* Stack main content and sidebar vertically */
                 gap: 20px; 
@@ -212,7 +221,10 @@
             .container {
                 padding: 0 15px; /* Reduced horizontal padding for mobile */
             }
-            /* Sidebar width is covered by the new block above */
+            /* Make Sidebar Fully Responsive */
+            .sidebar {    
+                width: 100%;  
+            }
         }
 
         .main-content {
@@ -230,6 +242,7 @@
             backdrop-filter: blur(12px);
             border: 1px solid var(--border-light);
             position: relative;
+            /* Ensure card content respects its own padding/overflow */
             overflow: hidden; 
             z-index: 2;
         }
@@ -415,7 +428,7 @@
             box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
         }
 
-        /* Handle Table Overflow Gracefully - DO NOT CHANGE mobile behavior */
+        /* Handle Table Overflow Gracefully */
         .result-container {
             margin-top: 30px;
             overflow-x: auto; /* Enable horizontal scrolling for tables on small screens */
@@ -547,7 +560,7 @@
             margin-top: 25px;
         }
 
-        /* Adjust Features Grids and Cards for Mobile - DO NOT CHANGE */
+        /* Adjust Feature Grids and Cards for Mobile */
         @media (max-width: 600px) {
             .export-actions {
                 grid-template-columns: 1fr; /* Stack export buttons vertically */
@@ -603,7 +616,6 @@
             box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
         }
 
-        /* Features grid for desktop - RESTORED */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
@@ -616,7 +628,7 @@
              width: 100%;
         }
 
-        /* Adjust Feature Grids and Cards for Mobile - DO NOT CHANGE */
+        /* Adjust Feature Grids and Cards for Mobile */
         @media (max-width: 768px) {  
             .features-grid {    
                 grid-template-columns: 1fr; /* Stack feature cards vertically */
@@ -774,7 +786,7 @@
             margin-right: 5px;
         }
 
-        /* Mobile specific adjustments - DO NOT CHANGE */
+        /* Mobile specific adjustments */
         @media (max-width: 768px) {
             .paste-button {
                 display: flex; /* Show on mobile */
@@ -870,7 +882,7 @@
             }
         }
 
-        /* Even smaller adjustments for extremely narrow phones (e.g., iPhone SE) - DO NOT CHANGE */
+        /* Even smaller adjustments for extremely narrow phones (e.g., iPhone SE) */
         @media (max-width: 400px) {
             .logo-text {
                 font-size: 20px; /* Further adjust logo text size */
