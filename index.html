@@ -36,10 +36,11 @@
             --glass-dark: rgba(0, 0, 0, 0.15);
         }
 
-        /* Essential for full width and no unwanted scrollbars */
+        /* Ensure HTML and Body take full width and handle overflow */
         html {
             width: 100%;
-            overflow-x: clip; /* Prevents horizontal scrollbar by clipping content that goes out */
+            height: 100%; /* Important for consistent sizing */
+            overflow-x: hidden; /* Prevent horizontal scrolling at the root level */
         }
         * {
             margin: 0;
@@ -55,9 +56,9 @@
             transition: var(--transition);
             padding: 20px;
             position: relative;
-            /* Removed overflow-x: hidden; to allow proper flow if content exceeds width temporarily for debugging */
+            overflow-x: hidden; /* Ensure no horizontal scrollbar */
             backdrop-filter: blur(20px);
-            width: 100%; /* Ensure body takes full width */
+            width: 100%; /* Explicitly set body width */
         }
 
         body.dark-mode {
@@ -191,6 +192,7 @@
         @media (max-width: 900px) {
             .dashboard {
                 grid-template-columns: 1fr;
+                gap: 20px; /* Adjusted gap for mobile */
             }
         }
 
@@ -209,7 +211,7 @@
             backdrop-filter: blur(12px);
             border: 1px solid var(--border-light);
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* Keep this to prevent card content from overflowing */
             z-index: 2;
         }
 
@@ -773,11 +775,11 @@
                 flex-direction: column; /* Stack icon and text vertically */
                 text-align: center;
                 gap: 10px;
+                width: 100%; /* Ensure feature cards take full width */
             }
             .feature-icon {
                 margin-bottom: 5px;
             }
-            /* Ensure footer aligns correctly in case of very narrow screens */
             footer {
                 padding: 20px 0; /* Slightly less padding for very small screens */
             }
@@ -842,6 +844,7 @@
                     </div>
                     
                     <div class="tab-content paste">
+                        <!-- Modified input group for paste button -->
                         <div class="input-group paste-input-group">
                             <div> 
                                 <label for="resultText">Paste Your Result Sheet</label>
@@ -881,7 +884,8 @@
                                 </tr>
                             </thead>
                             <tbody id="resultBody">
-                                </tbody>
+                                <!-- Results will be populated here -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -954,6 +958,7 @@
                     </div>
                 </div>
 
+                <!-- Report Bug/Feedback Form (retained from previous valid version) -->
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title"><i class="fas fa-bug"></i> Report Bug / Feedback</h2>
