@@ -36,6 +36,11 @@
             --glass-dark: rgba(0, 0, 0, 0.15);
         }
 
+        /* Essential for full width and no unwanted scrollbars */
+        html {
+            width: 100%;
+            overflow-x: clip; /* Prevents horizontal scrollbar by clipping content that goes out */
+        }
         * {
             margin: 0;
             padding: 0;
@@ -50,8 +55,9 @@
             transition: var(--transition);
             padding: 20px;
             position: relative;
-            overflow-x: hidden;
+            /* Removed overflow-x: hidden; to allow proper flow if content exceeds width temporarily for debugging */
             backdrop-filter: blur(20px);
+            width: 100%; /* Ensure body takes full width */
         }
 
         body.dark-mode {
@@ -64,6 +70,7 @@
             margin: 0 auto;
             position: relative;
             z-index: 2;
+            width: 100%; /* Ensure container takes full available width */
         }
 
         .bg-blob {
@@ -645,6 +652,7 @@
             color: #777;
             border-top: 1px solid var(--border-light);
             font-size: 14px;
+            width: 100%; /* Ensure footer takes full width for centering */
         }
 
         body.dark-mode footer {
@@ -701,15 +709,14 @@
         /* Styles for mobile paste button */
         .paste-input-group {
             position: relative;
-            /* Changed to flex for better layout control */
             display: flex; 
-            flex-direction: column; /* Stack textarea and button on small screens */
-            align-items: stretch; /* Stretch items to fill container */
-            gap: 10px; /* Space between textarea and button */
+            flex-direction: column; 
+            align-items: stretch; 
+            gap: 10px; 
         }
         .paste-input-group textarea {
             flex-grow: 1;
-            margin-bottom: 0; /* Remove margin if flex-gap handles spacing */
+            margin-bottom: 0; 
         }
         .paste-button {
             display: none; /* Hidden by default */
@@ -721,10 +728,9 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            white-space: nowrap; /* Prevent text wrapping */
+            white-space: nowrap; 
             box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
             transition: all 0.3s ease;
-            /* Removed align-self: stretch; to let it size naturally based on padding/content */
         }
         .paste-button:hover {
             transform: translateY(-2px);
@@ -741,13 +747,12 @@
                 justify-content: center;
             }
             .paste-input-group {
-                flex-direction: column; /* Stack textarea and button on mobile */
+                flex-direction: column; 
                 align-items: stretch;
             }
             .paste-input-group textarea {
-                margin-bottom: 10px; /* Space between textarea and button */
+                margin-bottom: 10px; 
             }
-            /* Adjust padding for overall phone view framing if necessary */
             body {
                 padding: 15px; /* Slightly reduced padding for smaller screens */
             }
@@ -759,8 +764,24 @@
             }
         }
 
-        /* CGPA Calculator specific styles (removed as per request) */
-        /* .cgpa-table { ... } */
+        /* Further adjustments for very small phones to prevent zoom/overflow */
+        @media (max-width: 480px) {
+            .features-grid {
+                grid-template-columns: 1fr; /* Force single column on very small screens */
+            }
+            .feature-card {
+                flex-direction: column; /* Stack icon and text vertically */
+                text-align: center;
+                gap: 10px;
+            }
+            .feature-icon {
+                margin-bottom: 5px;
+            }
+            /* Ensure footer aligns correctly in case of very narrow screens */
+            footer {
+                padding: 20px 0; /* Slightly less padding for very small screens */
+            }
+        }
     </style>
 </head>
 <body>
@@ -821,7 +842,6 @@
                     </div>
                     
                     <div class="tab-content paste">
-                        <!-- Modified input group for paste button -->
                         <div class="input-group paste-input-group">
                             <div> 
                                 <label for="resultText">Paste Your Result Sheet</label>
@@ -861,8 +881,7 @@
                                 </tr>
                             </thead>
                             <tbody id="resultBody">
-                                <!-- Results will be populated here -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -935,7 +954,6 @@
                     </div>
                 </div>
 
-                <!-- Report Bug/Feedback Form (retained from previous valid version) -->
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title"><i class="fas fa-bug"></i> Report Bug / Feedback</h2>
@@ -1000,7 +1018,7 @@
             'F': 0,
             'E': 0,
             'I': 0,
-            'QUALIFIED': 0, // Ensure 'Qualified' and 'Absent' map to 0 points and are excluded from SGPA
+            'QUALIFIED': 0, 
             'ABSENT': 0
         };
 
@@ -1120,7 +1138,6 @@
         });
 
         // Mobile Paste Button functionality
-        // Added this event listener to the mobilePasteBtn
         mobilePasteBtn.addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
@@ -1162,68 +1179,60 @@
             showStatus('Subject added successfully!', false); // Show success status
         });
 
-        // Function to strip HTML tags from a string (moved for scope)
+        // Function to strip HTML tags from a string
         function stripHtmlTags(htmlString) {
             const doc = new DOMParser().parseFromString(htmlString, 'text/html');
             return doc.body.textContent || "";
         }
 
-        // Helper function to parse a collected block of lines into a subject object (adapted for test.html)
+        // Helper function to parse a collected block of lines into a subject object
         function parseSubjectBlock(blockLines, subjectCodePattern, numberPattern, gradePattern) {
-            let subject = { code: '', name: '', credits: 0, grade: undefined }; // grade can be undefined initially
+            let subject = { code: '', name: '', credits: 0, grade: undefined }; 
             let nameParts = [];
-            let numericParts = []; // To collect all numbers encountered
-            let foundGradeText = ''; // Store the grade text (e.g., "A+", "QUALIFIED")
+            let numericParts = []; 
+            let foundGradeText = ''; 
 
-            // The first line must be the subject code
             const codeMatch = subjectCodePattern.exec(blockLines[0]);
-            if (!codeMatch) return null; // Invalid block start
+            if (!codeMatch) return null; 
             subject.code = codeMatch[1];
 
-            // Iterate through the rest of the lines to extract components
             for (let i = 1; i < blockLines.length; i++) {
                 const line = blockLines[i].trim();
                 if (line === "") continue;
 
-                // Check if it's a grade
                 const gradeMatch = gradePattern.exec(line);
                 if (gradeMatch) {
-                    foundGradeText = gradeMatch[1].toUpperCase(); // Capture the grade text
-                    break; // Stop processing further lines for this subject's core data
+                    foundGradeText = gradeMatch[1].toUpperCase(); 
+                    break; 
                 }
 
-                // Check if it's a number (marks or credits)
                 const numMatch = numberPattern.exec(line);
                 if (numMatch) {
                     numericParts.push(parseFloat(numMatch[0]));
                     continue;
                 }
 
-                // If it's not a grade, not a number, and not a new subject code or footer keyword, it's part of the name
-                // Adding additional checks to filter out irrelevant lines that might appear within subject blocks
                 if (!subjectCodePattern.test(line) && !line.includes("Disclaimer") && !line.includes("University") && !line.includes("Helpline") && !line.includes("Report a Bug")) {
                     nameParts.push(line);
                 }
             }
 
             subject.name = nameParts.join(' ').trim();
-            subject.grade = reverseGradeMap[foundGradeText]; // Map grade text to grade point
+            subject.grade = reverseGradeMap[foundGradeText]; 
             
-            // Determine credits: It's the last number found in the numeric parts collected before the grade
             if (numericParts.length > 0) {
                 subject.credits = numericParts[numericParts.length - 1];
             } else {
-                subject.credits = 0; // Default to 0 if no credits found
+                subject.credits = 0; 
             }
 
-            // Final check to ensure we have valid data
-            if (subject.code && !isNaN(subject.credits) && subject.credits > 0 && subject.grade !== undefined) { // Check grade is defined after mapping
+            if (subject.code && !isNaN(subject.credits) && subject.credits > 0 && subject.grade !== undefined) { 
                 return subject;
             }
-            return null; // Not a complete valid subject
+            return null; 
         }
 
-        // Main parsing function with robust logic (replaces existing parseResultSheet)
+        // Main parsing function with robust logic
         function parseResultSheet(text) {
             let rawText = text.trim();
             if (rawText.includes('<') && rawText.includes('>')) {
@@ -1233,12 +1242,16 @@
             const lines = rawText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
             let parsedSubjects = [];
 
-            // Regex patterns for parsing (defined within this scope for clarity)
-            const subjectCodePattern = /^(\d{2}[A-Z]{3}-\d{3,4})$/i; // Matches "23CSH-205"
+            // Regex patterns for parsing (updated for credits to handle integers or decimals)
+            const subjectCodePattern = /^(\d{2}[A-Z]{3}-\d{3,4})$/i; 
             const numberPattern = /^\d+(\.\d+)?$/; // Matches numbers like "49.84", "4", "4.00"
-            const gradePattern = /^([A-Z]+[+]?|Qualified|Absent|E|F|I)$/i; // Matches grades
+            const gradePattern = /^([A-Z]+[+]?|Qualified|Absent|E|F|I)$/i; 
 
-            // Keywords that signal the end of subject data section
+            // Updated single-line subject regex to correctly capture integer or decimal credits
+            // Group 1: code, Group 2: name, Group 3: credits, Group 4: grade
+            const singleLineSubjectRegex = /^(\d{2}[A-Z]{3}-\d{3,4})\s+(.+?)\s+(?:(?:\d+(?:\.\d+)?|\s*)\s+){0,2}(\d+(?:\.\d+)?)\s+([A-Z]+[+]?|Qualified|Absent|E|F|I)$/i;
+
+
             const endOfSubjectsKeywords = ["Disclaimer:", "University is not responsible", "General Helpline No:", "Email Id:", "Report a Bug", "Chandigarh University, Gharuan, Mohali (Punjab)"];
 
             let currentBlockLines = [];
@@ -1261,10 +1274,6 @@
                     continue;
                 }
 
-                // Check for single-line subject format first
-                // Group 1: code, Group 2: name, Group 3: credits, Group 4: grade
-                // This regex is more flexible about marks by allowing zero or more (?:(?:\d+\.\d+|\s*)\s+){0,2}(\d+\.\d+)\s+([A-Z]+[+]?|Qualified|Absent|E|F|I)$
-                const singleLineSubjectRegex = /^(\d{2}[A-Z]{3}-\d{3,4})\s+(.+?)\s+(?:(?:\d+\.\d+|\s*)\s+){0,2}(\d+\.\d+)\s+([A-Z]+[+]?|Qualified|Absent|E|F|I)$/i;
                 const singleLineMatch = singleLineSubjectRegex.exec(trimmedLine);
                 if (singleLineMatch) {
                     const gradeText = singleLineMatch[4].toUpperCase();
@@ -1272,30 +1281,25 @@
                         code: singleLineMatch[1],
                         name: singleLineMatch[2].trim(),
                         credits: parseFloat(singleLineMatch[3]),
-                        grade: reverseGradeMap[gradeText] // Convert grade text to grade point
+                        grade: reverseGradeMap[gradeText] 
                     });
-                    isInsideSubjectBlock = false; // Reset block accumulation
+                    isInsideSubjectBlock = false; 
                     currentBlockLines = [];
                     continue;
                 }
 
-                // --- Multi-line Subject Parsing Logic ---
                 if (subjectCodePattern.test(trimmedLine)) {
-                    // If a new subject block starts, parse the previous one if exists
                     if (isInsideSubjectBlock && currentBlockLines.length > 0) {
                         const subject = parseSubjectBlock(currentBlockLines, subjectCodePattern, numberPattern, gradePattern);
                         if (subject) parsedSubjects.push(subject);
                     }
-                    currentBlockLines = [trimmedLine]; // Start a new block
+                    currentBlockLines = [trimmedLine]; 
                     isInsideSubjectBlock = true;
                 } else if (isInsideSubjectBlock) {
-                    // Continue accumulating lines for the current subject block
                     currentBlockLines.push(trimmedLine);
                 }
-                // Lines not part of a subject block or student info are ignored if not starting a new block
             }
 
-            // After loop, parse any remaining accumulated block
             if (isInsideSubjectBlock && currentBlockLines.length > 0) {
                 const subject = parseSubjectBlock(currentBlockLines, subjectCodePattern, numberPattern, gradePattern);
                 if (subject) parsedSubjects.push(subject);
@@ -1303,12 +1307,11 @@
             return parsedSubjects;
         }
 
-        // Parse Results event listener remains the same, but it now calls the new parseResultSheet
+        // Parse Results event listener
         parseResultsBtn.addEventListener('click', () => {
             const text = resultText.value.trim();
             if (!text) {
                 showStatus('Please paste your result sheet', true);
-                // Hide processing message if input is empty
                 parseStatus.style.display = 'none';
                 return;
             }
@@ -1322,7 +1325,6 @@
                     const parsedSubjects = parseResultSheet(text);
                     if (parsedSubjects.length === 0) {
                         showStatus('No valid subjects found. Check your format.', true);
-                        // Hide processing message after error
                         parseStatus.style.display = 'none';
                         return;
                     }
@@ -1334,13 +1336,11 @@
                     
                     showStatus(`Successfully parsed ${parsedSubjects.length} subjects!`, false);
                     
-                    // Clear text after successful parse
                     resultText.value = ''; 
                     
                 } catch (error) {
                     showStatus(`Error: ${error.message}`, true);
-                    console.error("Parsing error:", error); // Log the error for debugging
-                    // Hide processing message after error
+                    console.error("Parsing error:", error); 
                     parseStatus.style.display = 'none';
                 }
             }, 100);
@@ -1353,7 +1353,7 @@
                 renderSubjects();
                 updateSGPA();
                 updateChart();
-                parseStatus.style.display = 'none'; // Hide status bar after reset
+                parseStatus.style.display = 'none'; 
                 showStatus('All data reset successfully!', false);
             }
         });
@@ -1366,11 +1366,9 @@
             }
             
             try {
-                // Create a new PDF document
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 
-                // Add header
                 doc.setFontSize(22);
                 doc.setTextColor(67, 97, 238);
                 doc.text('SGPA Report', 105, 20, null, null, 'center');
@@ -1378,30 +1376,25 @@
                 doc.setTextColor(100, 100, 100);
                 doc.text('Generated by SGPA Calculator Pro', 105, 28, null, null, 'center');
                 
-                // Add current date and SGPA
                 const now = new Date();
                 const sgpa = calculateSGPA();
                 doc.setFontSize(14);
-                // Adjust text color for PDF based on overall theme, or keep consistent neutral
-                doc.setTextColor(getComputedStyle(document.body).getPropertyValue('--text-light') === '#333333' ? 0 : 255); /* Use black for light mode, white for dark */
+                doc.setTextColor(document.body.classList.contains('dark-mode') ? 255 : 0); 
 
                 doc.text(`Date: ${now.toLocaleDateString()}`, 15, 40);
                 doc.text(`SGPA: ${sgpa.toFixed(2)}`, 15, 50);
                 
-                // Create table
                 const headers = [['Subject Code', 'Subject Name', 'Credits', 'Grade', 'Points']];
                 
-                // Filter subjects to only include those with valid grades and credits for display in PDF
                 const data = subjects.filter(s => s.grade !== undefined && (s.grade !== reverseGradeMap['QUALIFIED'] && s.grade !== reverseGradeMap['ABSENT'])) 
                                 .map(subject => [
                     subject.code,
                     subject.name,
                     subject.credits.toString(),
-                    gradeMap[subject.grade], // Use gradeMap to convert back to A+, B+ etc. for display
+                    gradeMap[subject.grade], 
                     subject.grade.toString()
                 ]);
                 
-                // Add table to PDF
                 doc.autoTable({
                     startY: 60,
                     head: headers,
@@ -1416,12 +1409,11 @@
                         cellPadding: 3,
                         fontSize: 10,
                         valign: 'middle',
-                        textColor: getComputedStyle(document.body).getPropertyValue('--text-light') === '#333333' ? 0 : 255 // Table cell text color
+                        textColor: document.body.classList.contains('dark-mode') ? 255 : 0
                     },
                     margin: { top: 10 }
                 });
                 
-                // Add footer
                 const pageCount = doc.internal.getNumberOfPages();
                 for (let i = 1; i <= pageCount; i++) {
                     doc.setPage(i);
@@ -1430,7 +1422,6 @@
                     doc.text(`Page ${i} of ${pageCount}`, 105, 287, null, null, 'center');
                 }
                 
-                // Save the PDF
                 doc.save(`SGPA_Report_${now.getTime()}.pdf`);
                 showStatus('PDF exported successfully!', false);
             } catch (error) {
@@ -1447,20 +1438,16 @@
             }
             
             try {
-                // Create CSV content
                 let csv = 'Subject Code,Subject Name,Credits,Grade,Points\n';
                 
-                // Filter subjects for CSV export as well
                 subjects.filter(s => s.grade !== undefined && (s.grade !== reverseGradeMap['QUALIFIED'] && s.grade !== reverseGradeMap['ABSENT']))
                          .forEach(subject => {
                     csv += `"${subject.code}","${subject.name}",${subject.credits},"${gradeMap[subject.grade]}",${subject.grade}\n`;
                 });
                 
-                // Add SGPA
                 const sgpa = calculateSGPA();
-                csv += `\nSGPA,,,${sgpa.toFixed(2)}\n`; // Added a newline for better formatting in CSV
+                csv += `\nSGPA,,,${sgpa.toFixed(2)}\n`; 
                 
-                // Create download link
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 const url = URL.createObjectURL(blob);
@@ -1485,7 +1472,7 @@
             renderSubjects();
             updateSGPA();
             updateChart();
-            showStatus('Subject deleted.', false); // Add status message
+            showStatus('Subject deleted.', false); 
         }
 
         // Render Subjects
@@ -1506,7 +1493,6 @@
             
             subjects.forEach((subject, index) => {
                 const row = document.createElement('tr');
-                // Apply a different style for 'Qualified'/'Absent' subjects if needed for visual distinction
                 const isExcluded = (subject.grade === reverseGradeMap['QUALIFIED'] || subject.grade === reverseGradeMap['ABSENT']);
                 row.classList.toggle('bg-gray-100', isExcluded);
                 row.classList.toggle('text-gray-500', isExcluded);
@@ -1517,7 +1503,7 @@
                         <div style="font-size: 0.9em; opacity: 0.8;">${subject.name}</div>
                     </td>
                     <td>${subject.credits}</td>
-                    <td>${gradeMap[subject.grade] || (isExcluded ? (subject.grade === reverseGradeMap['QUALIFIED'] ? 'Qualified' : 'Absent') : 'N/A')}</td> <!-- Display actual grade text or N/A -->
+                    <td>${gradeMap[subject.grade] || (isExcluded ? (subject.grade === reverseGradeMap['QUALIFIED'] ? 'Qualified' : 'Absent') : 'N/A')}</td> 
                     <td>${subject.grade !== undefined ? subject.grade : 'N/A'}</td>
                     <td class="actions">
                         <button class="action-btn" title="Delete" onclick="deleteSubject(${index})">
@@ -1536,16 +1522,15 @@
             let totalCredits = 0;
             let totalPoints = 0;
             
-            // Only include subjects with valid grade points (not Qualified/Absent) and positive credits
             subjects.forEach(subject => {
                 if (subject.grade !== undefined && subject.grade !== null && !isNaN(subject.credits) && subject.credits > 0 && 
-                    (subject.grade !== reverseGradeMap['QUALIFIED'] && subject.grade !== reverseGradeMap['ABSENT'])) { // Explicitly exclude Qualified/Absent
+                    (subject.grade !== reverseGradeMap['QUALIFIED'] && subject.grade !== reverseGradeMap['ABSENT'])) { 
                     totalCredits += subject.credits;
                     totalPoints += subject.credits * subject.grade;
                 }
             });
             
-            if (totalCredits === 0) return 0; // Avoid division by zero
+            if (totalCredits === 0) return 0; 
             
             return (totalPoints / totalCredits);
         }
@@ -1555,11 +1540,9 @@
             const sgpa = calculateSGPA();
             sgpaValue.textContent = sgpa.toFixed(2);
             
-            // Add animation
             sgpaValue.classList.add('highlight');
             setTimeout(() => sgpaValue.classList.remove('highlight'), 2000);
             
-            // Update SGPA display color based on performance and theme
             const isDarkMode = document.body.classList.contains('dark-mode');
             if (isDarkMode) {
                 if (sgpa >= 9.0) {
@@ -1574,21 +1557,17 @@
                     sgpaValue.style.color = '#ff6b6b';
                 }
             } else {
-                // Use var(--text-dark) for light mode SGPA value for better contrast
                 sgpaValue.style.color = getComputedStyle(document.body).getPropertyValue('--text-dark');
             }
         }
 
-
         // Update Chart
         function updateChart() {
-            // Count grades
             const gradeCount = {
                 'A+': 0, 'A': 0, 'B+': 0, 'B': 0,
                 'C+': 0, 'C': 0, 'D': 0, 'F': 0
             };
             
-            // Only count grades for subjects included in SGPA calculation
             subjects.forEach(subject => {
                 if (subject.grade !== undefined && subject.grade !== null && !isNaN(subject.credits) && subject.credits > 0 &&
                     (subject.grade !== reverseGradeMap['QUALIFIED'] && subject.grade !== reverseGradeMap['ABSENT'])) {
@@ -1599,17 +1578,16 @@
                 }
             });
             
-            // Update chart data
             gradeChart.data.datasets[0].data = [
                 gradeCount['A+'], gradeCount['A'], gradeCount['B+'], gradeCount['B'],
                 gradeCount['C+'], gradeCount['C'], gradeCount['D'], gradeCount['F']
             ];
             
-            updateChartColors(); // Ensure correct colors are applied after data update
+            updateChartColors(); 
             gradeChart.update();
         }
 
-        // Save data to localStorage (now only for theme, not subject data)
+        // Save data to localStorage (now only for theme)
         function saveData() {
             localStorage.setItem('sgpaTheme', 
                 document.body.classList.contains('dark-mode') ? 'dark' : 'light');
@@ -1621,7 +1599,7 @@
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-mode');
             } else {
-                document.body.classList.remove('dark-mode'); // Ensure light mode is default or explicitly set
+                document.body.classList.remove('dark-mode'); 
             }
         }
 
@@ -1630,7 +1608,6 @@
             parseStatus.style.display = 'flex';
             parseStatus.classList.toggle('error', isError);
             parseStatus.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> <span>${message}</span>`;
-            // Automatically hide after a few seconds unless it's an error
             if (!isError) {
                 setTimeout(() => {
                     parseStatus.style.display = 'none';
@@ -1640,16 +1617,15 @@
 
         // Initialize
         function init() {
-            // Clear localStorage for subject data and pre-filled text on every init (page load) to ensure auto-reset
             localStorage.removeItem('sgpaData'); 
-            resultText.value = ''; // Clear textarea on refresh
+            resultText.value = ''; 
 
-            loadData(); // Load theme
-            subjects = []; // Explicitly reset subjects array
+            loadData(); 
+            subjects = []; 
             renderSubjects();
             updateSGPA();
             updateChart();
-            updateChartColors(); // Initial chart color update
+            updateChartColors(); 
         }
 
         // Initialize the application
@@ -1662,7 +1638,7 @@
                 const subject = encodeURIComponent("SGPA Calculator Pro Feedback/Bug Report");
                 const body = encodeURIComponent(feedback);
                 window.location.href = `mailto:futureengineer9915@gmail.com?subject=${subject}&body=${body}`;
-                feedbackTextarea.value = ''; // Clear the textarea after sending
+                feedbackTextarea.value = ''; 
             } else {
                 showStatus('Please enter your feedback or bug description.', true);
             }
