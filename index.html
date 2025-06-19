@@ -54,7 +54,7 @@
             color: var(--text-light);
             min-height: 100vh;
             transition: var(--transition);
-            padding: 20px;
+            padding: 20px; /* Default padding for larger screens */
             position: relative;
             overflow-x: hidden; /* Ensure no horizontal scrollbar */
             backdrop-filter: blur(20px);
@@ -755,14 +755,15 @@
             .paste-input-group textarea {
                 margin-bottom: 10px; 
             }
+            /* Adjusted body padding for better mobile fit */
             body {
-                padding: 15px; /* Slightly reduced padding for smaller screens */
+                padding: 10px; 
             }
             .dashboard {
-                gap: 20px; /* Reduce gap in dashboard for mobile */
+                gap: 15px; /* Slightly reduced gap for mobile */
             }
             .card {
-                padding: 20px; /* Reduce card padding for mobile */
+                padding: 15px; /* Reduced card padding for mobile */
             }
         }
 
@@ -781,7 +782,13 @@
                 margin-bottom: 5px;
             }
             footer {
-                padding: 20px 0; /* Slightly less padding for very small screens */
+                padding: 15px 0; /* Slightly less padding for very small screens */
+            }
+            .logo-text {
+                font-size: 24px; /* Adjust logo text size for very small screens */
+            }
+            .sgpa-value {
+                font-size: 40px; /* Adjust SGPA value font size */
             }
         }
     </style>
