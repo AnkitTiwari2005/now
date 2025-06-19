@@ -217,7 +217,7 @@
         }
 
         .theme-toggle i.fa-sun {
-            color: #D3D3D3; /* Sun icon color */
+            color: #FFD700; /* Sun icon color */
         }
         .theme-toggle i.fa-moon {
             color: #d8b2ff; /* Moon icon color */
@@ -461,6 +461,7 @@
             overflow-x: auto; /* Enable horizontal scrolling for tables on small screens */
             -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
             padding-bottom: 10px; /* Add some padding to see the scrollbar clearly */
+            max-width: 100%; /* Ensure container constraints as per doc */
         }
 
         table {
@@ -469,6 +470,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            table-layout: auto; /* Allow auto layout for columns */
         }
 
         th, td {
@@ -1164,6 +1166,30 @@
     </div>
 
     <script>
+        // Disable right-click context menu
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Disable common keyboard shortcuts for developer tools
+        document.addEventListener('keydown', event => {
+            // F12
+            if (event.key === 'F12') {
+                event.preventDefault();
+            }
+            // Ctrl+Shift+I (or Cmd+Option+I on Mac)
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'I') {
+                event.preventDefault();
+            }
+            // Ctrl+Shift+J (or Cmd+Option+J on Mac)
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'J') {
+                event.preventDefault();
+            }
+            // Ctrl+U (View Source)
+            if ((event.ctrlKey || event.metaKey) && event.key === 'U') {
+                event.preventDefault();
+            }
+        });
+
+
         // DOM Elements
         const themeToggle = document.getElementById('themeToggle');
         const tabs = document.querySelectorAll('.tab');
