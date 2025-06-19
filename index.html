@@ -81,10 +81,10 @@
             padding: 0 20px; /* Default horizontal padding for desktop */
         }
 
-        /* Desktop: Centered container with max-width */
+        /* Desktop: Centered container with increased max-width */
         @media (min-width: 901px) {  
             .container {    
-                max-width: 1200px;    
+                max-width: 1300px;    /* Increased from 1200px for a wider look */
                 margin: 0 auto;    
                 padding: 0 20px; /* Restore desktop padding */
             }
@@ -997,7 +997,7 @@
                     </div>
                     
                     <div class="result-container">
-                        <div class="result-header">
+                        <div class="card-header"> <!-- Moved card-header here for reset button positioning -->
                             <h3 class="card-title"><i class="fas fa-table"></i> Results</h3>
                             <button class="action-btn" id="resetBtn" title="Reset all data">
                                 <i class="fas fa-trash-alt"></i> Reset
@@ -1140,7 +1140,10 @@
             '6': 'C+',
             '5': 'C',
             '4': 'D',
-            '0': 'F' // Default for E/F/I
+            '0': 'F', // Default for E/F/I
+            // Added explicit mappings for 'QUALIFIED' and 'ABSENT' to display as text
+            'QUALIFIED': 'Qualified',
+            'ABSENT': 'Absent'
         };
 
         const reverseGradeMap = {
@@ -1154,8 +1157,8 @@
             'F': 0,
             'E': 0,
             'I': 0,
-            'QUALIFIED': 0, 
-            'ABSENT': 0
+            'QUALIFIED': 'QUALIFIED', // Map 'QUALIFIED' to itself to denote a special status
+            'ABSENT': 'ABSENT' // Map 'ABSENT' to itself
         };
 
         // Subject data
@@ -1328,6 +1331,7 @@
             let nameParts = [];
             let numericParts = []; 
             let foundGradeText = ''; 
+            let isQualifiedOrAbsent = false;
 
             const codeMatch = subjectCodePattern.exec(blockLines[0]);
             if (!codeMatch) return null; 
@@ -1340,6 +1344,9 @@
                 const gradeMatch = gradePattern.exec(line);
                 if (gradeMatch) {
                     foundGradeText = gradeMatch[1].toUpperCase(); 
+                    if (foundGradeText === 'QUALIFIED' || foundGradeText === 'ABSENT') {
+                        isQualifiedOrAbsent = true;
+                    }
                     break; 
                 }
 
@@ -1355,7 +1362,13 @@
             }
 
             subject.name = nameParts.join(' ').trim();
-            subject.grade = reverseGradeMap[foundGradeText]; 
+            
+            // If the grade is QUALIFIED or ABSENT, set the grade value as the string itself
+            if (isQualifiedOrAbsent) {
+                subject.grade = foundGradeText; 
+            } else {
+                subject.grade = reverseGradeMap[foundGradeText]; 
+            }
             
             if (numericParts.length > 0) {
                 subject.credits = numericParts[numericParts.length - 1];
@@ -1418,7 +1431,7 @@
                         code: singleLineMatch[1],
                         name: singleLineMatch[2].trim(),
                         credits: parseFloat(singleLineMatch[3]),
-                        grade: reverseGradeMap[gradeText] 
+                        grade: (gradeText === 'QUALIFIED' || gradeText === 'ABSENT') ? gradeText : reverseGradeMap[gradeText] 
                     });
                     isInsideSubjectBlock = false; 
                     currentBlockLines = [];
@@ -1523,7 +1536,8 @@
                 
                 const headers = [['Subject Code', 'Subject Name', 'Credits', 'Grade', 'Points']];
                 
-                const data = subjects.filter(s => s.grade !== undefined && (s.grade !== reverseGradeMap['QUALIFIED'] && s.grade !== reverseGradeMap['ABSENT'])) 
+                // Filter subjects for PDF export: only include those with numeric grades
+                const data = subjects.filter(s => typeof s.grade === 'number' && !isNaN(s.grade) && s.credits > 0)
                                 .map(subject => [
                     subject.code,
                     subject.name,
@@ -1577,7 +1591,8 @@
             try {
                 let csv = 'Subject Code,Subject Name,Credits,Grade,Points\n';
                 
-                subjects.filter(s => s.grade !== undefined && (s.grade !== reverseGradeMap['QUALIFIED'] && s.grade !== reverseGradeMap['ABSENT']))
+                // Filter subjects for CSV export: only include those with numeric grades
+                subjects.filter(s => typeof s.grade === 'number' && !isNaN(s.grade) && s.credits > 0)
                          .forEach(subject => {
                     csv += `"${subject.code}","${subject.name}",${subject.credits},"${gradeMap[subject.grade]}",${subject.grade}\n`;
                 });
@@ -1630,18 +1645,31 @@
             
             subjects.forEach((subject, index) => {
                 const row = document.createElement('tr');
-                const isExcluded = (subject.grade === reverseGradeMap['QUALIFIED'] || subject.grade === reverseGradeMap['ABSENT']);
-                row.classList.toggle('bg-gray-100', isExcluded);
-                row.classList.toggle('text-gray-500', isExcluded);
-                row.classList.toggle('italic', isExcluded);
+                // Apply a different style for 'Qualified'/'Absent' subjects
+                const isSpecialGrade = (subject.grade === 'QUALIFIED' || subject.grade === 'ABSENT');
+                row.classList.toggle('bg-gray-100', isSpecialGrade);
+                row.classList.toggle('text-gray-500', isSpecialGrade);
+                row.classList.toggle('italic', isSpecialGrade);
+
+                // Determine the grade display text
+                let gradeDisplayText;
+                if (isSpecialGrade) {
+                    gradeDisplayText = subject.grade; // Display "QUALIFIED" or "ABSENT" directly
+                } else {
+                    gradeDisplayText = gradeMap[subject.grade] || 'N/A'; // Use gradeMap for numeric grades
+                }
+
+                // Determine points display: N/A for special grades, actual points for others
+                const pointsDisplayText = isSpecialGrade ? 'N/A' : (subject.grade !== undefined ? subject.grade : 'N/A');
+
                 row.innerHTML = `
                     <td>
                         <div><strong>${subject.code}</strong></div>
                         <div style="font-size: 0.9em; opacity: 0.8;">${subject.name}</div>
                     </td>
                     <td>${subject.credits}</td>
-                    <td>${gradeMap[subject.grade] || (isExcluded ? (subject.grade === reverseGradeMap['QUALIFIED'] ? 'Qualified' : 'Absent') : 'N/A')}</td> 
-                    <td>${subject.grade !== undefined ? subject.grade : 'N/A'}</td>
+                    <td>${gradeDisplayText}</td> 
+                    <td>${pointsDisplayText}</td>
                     <td class="actions">
                         <button class="action-btn" title="Delete" onclick="deleteSubject(${index})">
                             <i class="fas fa-trash-alt"></i>
@@ -1660,8 +1688,8 @@
             let totalPoints = 0;
             
             subjects.forEach(subject => {
-                if (subject.grade !== undefined && subject.grade !== null && !isNaN(subject.credits) && subject.credits > 0 && 
-                    (subject.grade !== reverseGradeMap['QUALIFIED'] && subject.grade !== reverseGradeMap['ABSENT'])) { 
+                // Only include subjects with valid numeric grades and positive credits for SGPA calculation
+                if (typeof subject.grade === 'number' && !isNaN(subject.grade) && subject.credits > 0) { 
                     totalCredits += subject.credits;
                     totalPoints += subject.credits * subject.grade;
                 }
@@ -1706,8 +1734,8 @@
             };
             
             subjects.forEach(subject => {
-                if (subject.grade !== undefined && subject.grade !== null && !isNaN(subject.credits) && subject.credits > 0 &&
-                    (subject.grade !== reverseGradeMap['QUALIFIED'] && subject.grade !== reverseGradeMap['ABSENT'])) {
+                // Only count subjects with numeric grades for the chart
+                if (typeof subject.grade === 'number' && !isNaN(subject.grade) && subject.credits > 0) {
                     const grade = gradeMap[subject.grade];
                     if (gradeCount.hasOwnProperty(grade)) {
                         gradeCount[grade]++;
