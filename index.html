@@ -176,9 +176,13 @@
             border-radius: 15px;
             position: relative;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.4s ease-in-out; /* Adjusted transition for animation */
             box-shadow: var(--shadow);
             flex-shrink: 0; /* Prevent toggle from shrinking */
+            display: flex; /* Enable flexbox for icon positioning */
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px; /* Padding for icons */
         }
 
         body.dark-mode .theme-toggle {
@@ -195,13 +199,36 @@
             background: var(--primary);
             top: 2px;
             left: 3px;
-            transition: var(--transition);
+            transition: all 0.4s ease-in-out; /* Adjusted transition for animation */
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         body.dark-mode .theme-toggle::before {
             left: 32px;
             background: var(--success);
+        }
+
+        .theme-toggle i {
+            position: relative;
+            z-index: 2; /* Ensure icons are above the ::before pseudo-element */
+            font-size: 16px;
+            color: var(--primary); /* Default icon color (light mode) */
+            transition: all 0.4s ease-in-out;
+        }
+
+        .theme-toggle i.fa-sun {
+            color: #FFD700; /* Sun icon color */
+        }
+        .theme-toggle i.fa-moon {
+            color: #d8b2ff; /* Moon icon color */
+        }
+
+        body.dark-mode .theme-toggle i.fa-sun {
+            color: var(--text-dark); /* Sun icon visible in dark mode */
+        }
+
+        body.dark-mode .theme-toggle i.fa-moon {
+            color: var(--primary); /* Moon icon visible in light mode */
         }
 
         /* Dashboard layout for desktop */
@@ -699,11 +726,37 @@
             border-top: 1px solid var(--border-light);
             font-size: 14px;
             width: 100%; /* Explicitly ensure footer takes full width for centering */
+            display: flex; /* Added for alignment of text and button */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 10px; /* Spacing between text and button */
         }
 
         body.dark-mode footer {
             border-top-color: var(--border-dark);
             color: #aaa;
+        }
+
+        .linkedin-btn {
+            background: #0077B5; /* LinkedIn blue */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex; /* Use inline-flex to sit next to text */
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            text-decoration: none; /* Remove underline for anchor tag */
+            box-shadow: 0 2px 5px rgba(0, 119, 181, 0.3);
+        }
+
+        .linkedin-btn:hover {
+            background: #005582;
+            transform: translateY(-1px);
         }
 
         .status-bar {
@@ -929,7 +982,10 @@
                 </div>
                 <div class="logo-text">SGPA Calculator Pro</div>
             </div>
-            <div class="theme-toggle" id="themeToggle"></div>
+            <div class="theme-toggle" id="themeToggle">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+            </div>
         </header>
         
         <div class="dashboard">
@@ -952,12 +1008,13 @@
                         
                         <div class="input-group">
                             <label for="credits">Credits</label>
-                            <input type="number" id="credits" placeholder="Enter credits" min="1" max="10" value="4">
+                            <input type="number" id="credits" placeholder="Enter credits" min="1" max="10">
                         </div>
                         
                         <div class="input-group">
                             <label for="grade">Grade</label>
                             <select id="grade">
+                                <option value=""></option> <!-- Empty option for initial state -->
                                 <option value="10">A+</option>
                                 <option value="9">A</option>
                                 <option value="8">B+</option>
@@ -1032,15 +1089,7 @@
                         </div>
                     </div>
                     
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-history"></i>
-                        </div>
-                        <div class="feature-text">
-                            <h3>Data Persistence</h3>
-                            <p>Auto-saves your data between sessions</p>
-                        </div>
-                    </div>
+                    <!-- Removed Data Persistence Card -->
                     
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -1074,7 +1123,7 @@
                     </div>
                 </div>
                 
-                <div class="card">
+                <div class="card" style="margin-bottom: 20px;"> <!-- Added margin-bottom for spacing -->
                     <div class="card-header">
                         <h2 class="card-title"><i class="fas fa-download"></i> Export Results</h2>
                     </div>
@@ -1106,7 +1155,11 @@
         </div>
         
         <footer>
-            <p>Premium SGPA Calculator Pro &copy; 2023 | All calculations done locally on your device | Advanced Parsing Engine v3.0</p>
+            <p>Created By Ankit Tiwari</p>
+            <a href="https://www.linkedin.com/in/ankit-k-tiwari/" target="_blank" class="linkedin-btn">
+                <i class="fab fa-linkedin"></i> LinkedIn
+            </a>
+            <p>Premium SGPA Calculator Pro &copy; 2025 | All calculations done locally on your device | Advanced Parsing Engine v3.0</p>
         </footer>
     </div>
 
@@ -1270,8 +1323,8 @@
                 
                 parseStatus.style.display = 'none'; // Hide status bar
                 subjectNameInput.value = '';
-                creditsInput.value = '4';
-                gradeInput.value = '10';
+                creditsInput.value = ''; // Clear credits input
+                gradeInput.value = ''; // Clear grade input
                 resultText.value = ''; // Clear paste textarea
             });
         });
@@ -1293,10 +1346,19 @@
         addSubjectBtn.addEventListener('click', () => {
             const name = subjectNameInput.value.trim();
             const credits = parseInt(creditsInput.value);
-            const grade = parseInt(gradeInput.value);
+            // Ensure grade is retrieved correctly for special cases
+            const gradeValue = gradeInput.value; 
+            let grade;
+
+            // Handle special grade strings from reverseGradeMap
+            if (gradeValue === 'QUALIFIED' || gradeValue === 'ABSENT') {
+                grade = gradeValue;
+            } else {
+                grade = parseInt(gradeValue);
+            }
             
-            if (!name || isNaN(credits) || isNaN(grade) || credits <= 0) {
-                showStatus('Please fill all fields correctly with valid credits.', true);
+            if (!name || isNaN(credits) || credits <= 0 || grade === undefined || grade === '') {
+                showStatus('Please fill all fields correctly with valid credits and select a grade.', true);
                 return;
             }
             
@@ -1311,10 +1373,10 @@
             updateSGPA();
             updateChart();
             
-            // Clear inputs
+            // Clear inputs, keep them blank initially
             subjectNameInput.value = '';
-            creditsInput.value = '4';
-            gradeInput.value = '10';
+            creditsInput.value = ''; 
+            gradeInput.value = ''; 
             
             showStatus('Subject added successfully!', false); // Show success status
         });
@@ -1791,6 +1853,10 @@
             updateSGPA();
             updateChart();
             updateChartColors(); 
+            // Clear inputs for manual mode on initial load
+            subjectNameInput.value = '';
+            creditsInput.value = ''; 
+            gradeInput.value = ''; 
         }
 
         // Initialize the application
