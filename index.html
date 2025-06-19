@@ -921,12 +921,13 @@
             }
             table { /* Table specific mobile adjustments */
                 table-layout: auto; /* Allow auto layout for columns */
-                min-width: unset; /* Remove minimum width */
+                /* Removed min-width rules as per instructions */
             }
             th, td {
                 font-size: 12px;
                 padding: 8px 6px;
-                word-break: break-word; /* Allow words to break */
+                white-space: normal; /* Allow text wrapping as per instructions */
+                word-break: break-word; /* Ensure long words wrap */
                 overflow-wrap: break-word; /* Ensure long words wrap */
             }
             /* Logo text specific mobile properties */
