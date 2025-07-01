@@ -1,12 +1,1906 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Loading...</title>
-  <script src="js/protections.js"></script>
-  <script src="js/content.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium SGPA Calculator Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --bg-light: #ffffff;
+            --bg-dark: #121212;
+            --card-light: rgba(255, 255, 255, 0.85);
+            --card-dark: rgba(30, 30, 30, 0.85);
+            --text-light: #333333;
+            --text-dark: #f0f0f0;
+            --border-light: rgba(224, 224, 224, 0.5);
+            --border-dark: rgba(51, 51, 51, 0.5);
+            --shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+            --border-radius: 16px;
+            --glow: 0 0 15px rgba(67, 97, 238, 0.3);
+            --glass: rgba(255, 255, 255, 0.15);
+            --glass-dark: rgba(0, 0, 0, 0.15);
+        }
+
+        /* Universal box-sizing for predictable layout behavior */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box; 
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* CRITICAL: Prevent Global Horizontal Scroll and ensure full width */
+        html, body {  
+            width: 100%;  
+            max-width: 100vw;  
+            overflow-x: hidden;
+            /* Ensure 100% height for consistent sizing across devices */
+            height: 100%;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f5ff 0%, #e6edff 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            transition: var(--transition);
+            padding: 20px; /* Default padding for larger screens */
+            position: relative;
+            backdrop-filter: blur(20px);
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #0c0e2b 0%, #1a1a40 100%);
+            color: var(--text-dark);
+        }
+
+        /* Make All Containers Responsive - Global properties (for desktop baseline) */
+        .dashboard, .main-content, .sidebar, .card, .result-container {  
+            width: 100%;  
+            box-sizing: border-box;
+        }
+
+        .container {
+            /* Desktop specific properties for .container moved into media query */
+            position: relative;
+            z-index: 2;
+            padding: 0 20px; /* Default horizontal padding for desktop */
+        }
+
+        /* Desktop: Centered container with increased max-width */
+        @media (min-width: 901px) {  
+            .container {    
+                max-width: 1300px;    /* Increased from 1200px for a wider look */
+                margin: 0 auto;    
+                padding: 0 20px; /* Restore desktop padding */
+            }
+        }
+
+        .bg-blob {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.1;
+            z-index: 1;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .blob-1 {
+            background: var(--primary);
+            top: 10%;
+            right: -10%;
+        }
+
+        .blob-2 {
+            background: var(--accent);
+            bottom: 10%;
+            left: -10%;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, 20px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            width: 100%; /* Ensure header takes full width of container */
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 1; /* Allow logo to shrink if needed */
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: var(--shadow);
+            animation: pulse 2s infinite;
+            flex-shrink: 0; /* Prevent icon from shrinking */
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+            70% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(67, 97, 238, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+
+        /* Logo text for desktop: allow natural wrapping */
+        .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            /* Removed white-space, overflow, text-overflow from global for desktop */
+        }
+
+        .theme-toggle {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s ease-in-out; /* Adjusted transition for animation */
+            box-shadow: var(--shadow);
+            flex-shrink: 0; /* Prevent toggle from shrinking */
+            display: flex; /* Enable flexbox for icon positioning */
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px; /* Padding for icons */
+        }
+
+        body.dark-mode .theme-toggle {
+            background: var(--bg-dark);
+            border-color: var(--border-dark);
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            top: 2px;
+            left: 3px;
+            transition: all 0.4s ease-in-out; /* Adjusted transition for animation */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        body.dark-mode .theme-toggle::before {
+            left: 32px;
+            background: var(--success);
+        }
+
+        .theme-toggle i {
+            position: relative;
+            z-index: 2; /* Ensure icons are above the ::before pseudo-element */
+            font-size: 16px;
+            color: var(--primary); /* Default icon color (light mode) */
+            transition: all 0.4s ease-in-out;
+        }
+
+        .theme-toggle i.fa-sun {
+            color: #FFD700; /* Sun icon color */
+        }
+        .theme-toggle i.fa-moon {
+            color: #d8b2ff; /* Moon icon color */
+        }
+
+        body.dark-mode .theme-toggle i.fa-sun {
+            color: var(--text-dark); /* Sun icon visible in dark mode */
+        }
+
+        body.dark-mode .theme-toggle i.fa-moon {
+            color: var(--primary); /* Moon icon visible in light mode */
+        }
+
+        /* Dashboard layout for desktop */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 350px; /* Desktop layout */
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Mobile Layout */
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr; /* Stack main content and sidebar vertically */
+                gap: 20px; 
+            }
+            .container {
+                padding: 0 15px; /* Reduced horizontal padding for mobile */
+            }
+            /* Make Sidebar Fully Responsive */
+            .sidebar {    
+                width: 100%;  
+            }
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card-light);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px; /* Default card padding */
+            transition: var(--transition);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-light);
+            position: relative;
+            /* Ensure card content respects its own padding/overflow */
+            overflow: hidden; 
+            z-index: 2;
+        }
+
+        body.dark-mode .card {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        body.dark-mode .card-header {
+            border-bottom-color: var(--border-dark);
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f0f2f5;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 25px;
+            position: relative;
+            flex-wrap: wrap; /* Allow tabs to wrap on any screen size if needed */
+            width: 100%;
+        }
+
+        body.dark-mode .tabs {
+            background: #2a2a2a;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            z-index: 2;
+        }
+
+        .tab.active {
+            color: white;
+        }
+
+        .tab.active::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            z-index: -1;
+            box-shadow: var(--glow);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        body.dark-mode label {
+            color: var(--text-dark);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: var(--bg-light);
+            color: var(--text-light);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+            color: var(--text-dark);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .add-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+
+        .add-btn:hover::before {
+            left: 100%;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        /* Handle Table Overflow Gracefully */
+        .result-container {
+            margin-top: 30px;
+            overflow-x: auto; /* Enable horizontal scrolling for tables on small screens */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            padding-bottom: 10px; /* Add some padding to see the scrollbar clearly */
+            max-width: 100%; /* Ensure container constraints as per doc */
+        }
+
+        table {
+            width: 100%; /* Table always attempts to take 100% width of its container */
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            table-layout: auto; /* Allow auto layout for columns */
+        }
+
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            white-space: nowrap; /* Keep table cell content on a single line by default */
+        }
+
+        body.dark-mode th,
+        body.dark-mode td {
+            border-bottom-color: var(--border-dark);
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        body.dark-mode tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: var(--transition);
+            padding: 5px;
+            border-radius: 6px;
+        }
+
+        .action-btn:hover {
+            background: rgba(67, 97, 238, 0.1);
+        }
+
+        .sgpa-display {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sgpa-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 70%);
+        }
+
+        .sgpa-label {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .sgpa-value {
+            font-size: 48px;
+            font-weight: 800;
+            margin: 10px 0;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.5s ease;
+        }
+        
+        body:not(.dark-mode) .sgpa-value {
+            color: var(--text-dark); 
+        }
+
+        @keyframes pulse-sgpa {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .sgpa-scale {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chart-container {
+            height: 250px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .export-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* Adjust Feature Grids and Cards for Mobile */
+        @media (max-width: 600px) {
+            .export-actions {
+                grid-template-columns: 1fr; /* Stack export buttons vertically */
+            }
+        }
+
+        .export-btn {
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            width: 100%; /* Ensure buttons take full width of their grid column */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .export-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.3), transparent);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .export-btn:hover::before {
+            opacity: 1;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .export-btn.pdf {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .export-btn.csv {
+            background: linear-gradient(135deg, #4cc9f0, #6bd6ff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            gap: 20px;  
+            margin-top: 30px; 
+            padding: 0; 
+        }
+        /* Make the grid span the full width of its parent (.main-content) */
+        .main-content .features-grid {
+             width: 100%;
+        }
+
+        /* Features grid: Flexible columns on desktop */
+        @media (min-width: 901px) {  
+            .features-grid {    
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));  
+            }
+        }
+
+        /* Adjust Feature Grids and Cards for Mobile */
+        @media (max-width: 768px) {  
+            .features-grid {    
+                grid-template-columns: 1fr; /* Stack feature cards vertically */
+            }  
+            .feature-card {    
+                flex-direction: column;    
+                text-align: center;  
+            }
+        }
+
+        .feature-card {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-light);
+            width: 100%; /* Ensure feature cards take full width in their grid column */
+        }
+
+        body.dark-mode .feature-card {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .feature-text h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .feature-text p {
+            font-size: 14px;
+            color: #777;
+        }
+
+        body.dark-mode .feature-text p {
+            color: #aaa;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 30px;
+            color: #777;
+            border-top: 1px solid var(--border-light);
+            font-size: 14px;
+            width: 100%; /* Explicitly ensure footer takes full width for centering */
+            display: flex; /* Added for alignment of text and button */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 10px; /* Spacing between text and button */
+        }
+
+        body.dark-mode footer {
+            border-top-color: var(--border-dark);
+            color: #aaa;
+        }
+
+        .linkedin-btn {
+            background: #0077B5; /* LinkedIn blue */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex; /* Use inline-flex to sit next to text */
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            text-decoration: none; /* Remove underline for anchor tag */
+            box-shadow: 0 2px 5px rgba(0, 119, 181, 0.3);
+        }
+
+        .linkedin-btn:hover {
+            background: #005582;
+            transform: translateY(-1px);
+        }
+
+        .status-bar {
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: rgba(76, 201, 240, 0.15);
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #4cc9f0;
+            font-weight: 500;
+        }
+
+        body.dark-mode .status-bar {
+            background: rgba(76, 201, 240, 0.1);
+        }
+
+        .status-bar.error {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+        }
+
+        body.dark-mode .status-bar.error {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .highlight {
+            animation: highlight 2s ease;
+        }
+
+        @keyframes highlight {
+            0% { background: rgba(76, 201, 240, 0.3); }
+            100% { background: transparent; }
+        }
+
+        /* Styles for mobile paste button */
+        .paste-input-group {
+            position: relative;
+            display: flex; 
+            flex-direction: column; 
+            align-items: stretch; 
+            gap: 10px; 
+        }
+        .paste-input-group textarea {
+            flex-grow: 1;
+            margin-bottom: 0; 
+        }
+        .paste-button {
+            display: none; /* Hidden by default for desktop/PC */
+            background: linear-gradient(135deg, #2ECC71, #1ABC9C); /* Green gradient */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap; /* Prevent button text from wrapping */
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+            transition: all 0.3s ease;
+        }
+        .paste-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(46, 204, 113, 0.4);
+        }
+        .paste-button i {
+            margin-right: 5px;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .paste-button {
+                display: flex; /* Show on mobile */
+                align-items: center;
+                justify-content: center;
+            }
+            .paste-input-group {
+                flex-direction: column; 
+                align-items: stretch;
+            }
+            .paste-input-group textarea {
+                margin-bottom: 10px; 
+            }
+            /* Adjustments for the whole body/container for optimal mobile fit */
+            body {
+                padding: 10px 0; /* Only vertical padding, horizontal handled by container */
+            }
+            .container {
+                padding: 0 10px; /* Reduced horizontal padding for container on mobile */
+            }
+            .dashboard {
+                gap: 15px; /* Slightly reduced gap for mobile sections */
+            }
+            .card {
+                padding: 15px; /* Reduced card padding for mobile */
+            }
+            .card-title {
+                font-size: 18px; /* Smaller card titles on mobile */
+            }
+            .tabs .tab {
+                min-width: unset; /* Allow tabs to be more flexible */
+                padding: 10px; /* Smaller padding for tabs */
+                font-size: 14px; /* Smaller font size for tabs */
+            }
+            .input-group label {
+                font-size: 14px;
+            }
+            input, select, textarea {
+                padding: 12px; /* Smaller padding for inputs */
+                font-size: 14px;
+            }
+            .add-btn {
+                padding: 12px 20px; /* Smaller padding for buttons */
+                font-size: 14px;
+            }
+            .sgpa-label {
+                font-size: 16px;
+            }
+            .sgpa-value {
+                font-size: 40px; /* Adjusted SGPA value font size for mobile */
+            }
+            .sgpa-scale {
+                font-size: 14px;
+            }
+            .export-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            .feature-card {
+                flex-direction: column; /* Stack icon and text vertically for features */
+                text-align: center;
+                gap: 10px;
+                padding: 15px;
+            }
+            .feature-icon {
+                margin-bottom: 5px;
+            }
+            .feature-text h3 {
+                font-size: 15px;
+            }
+            .feature-text p {
+                font-size: 13px;
+            }
+            footer {
+                padding: 15px 0; /* Consistent footer padding */
+                font-size: 12px; /* Smaller footer text */
+            }
+            table { /* Table specific mobile adjustments */
+                table-layout: auto; /* Allow auto layout for columns */
+                /* Removed min-width rules as per instructions */
+            }
+            th, td {
+                font-size: 12px;
+                padding: 8px 6px;
+                white-space: normal; /* Allow text wrapping as per instructions */
+                word-break: break-word; /* Ensure long words wrap */
+                overflow-wrap: break-word; /* Ensure long words wrap */
+            }
+            /* Logo text specific mobile properties */
+            .logo-text {
+                white-space: nowrap; /* Prevent logo text from wrapping */
+                overflow: hidden; /* Hide overflow if text is too long */
+                text-overflow: ellipsis; /* Add ellipsis for clipped text */
+            }
+        }
+
+        /* Even smaller adjustments for extremely narrow phones (e.g., iPhone SE) */
+        @media (max-width: 400px) {
+            .logo-text {
+                font-size: 20px; /* Further adjust logo text size */
+            }
+            .logo-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            .theme-toggle {
+                width: 45px;
+                height: 22px;
+            }
+            .theme-toggle::before {
+                width: 18px;
+                height: 18px;
+                top: 2px;
+                left: 3px;
+            }
+            body.dark-mode .theme-toggle::before {
+                left: 24px;
+            }
+            .tabs .tab {
+                padding: 6px; /* Even smaller tab padding */
+                font-size: 12px;
+            }
+            th, td {
+                font-size: 11px;
+                padding: 6px 4px;
+            }
+        }
+
+    </style>
 </head>
 <body>
-  <noscript>Please enable JavaScript to view this site.</noscript>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <div class="logo-text">SGPA Calculator Pro</div>
+            </div>
+            <div class="theme-toggle" id="themeToggle">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+            </div>
+        </header>
+        
+        <div class="dashboard">
+            <div class="main-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-edit"></i> Enter Your Grades</h2>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active" data-tab="manual">Manual Entry</div>
+                        <div class="tab" data-tab="paste">Paste Results</div>
+                    </div>
+                    
+                    <div class="tab-content manual active">
+                        <div class="input-group">
+                            <label for="subjectName">Subject Name</label>
+                            <input type="text" id="subjectName" placeholder="Enter subject name">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="credits">Credits</label>
+                            <input type="number" id="credits" placeholder="Enter credits" min="1" max="10">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="grade">Grade</label>
+                            <select id="grade">
+                                <option value=""></option> <!-- Empty option for initial state -->
+                                <option value="10">A+</option>
+                                <option value="9">A</option>
+                                <option value="8">B+</option>
+                                <option value="7">B</option>
+                                <option value="6">C+</option>
+                                <option value="5">C</option>
+                                <option value="4">D</option>
+                                <option value="0">E/F/I</option>
+                            </select>
+                        </div>
+                        
+                        <button class="add-btn" id="addSubject">
+                            <i class="fas fa-plus"></i> Add Subject
+                        </button>
+                    </div>
+                    
+                    <div class="tab-content paste">
+                        <!-- Modified input group to hold textarea and mobile paste button -->
+                        <div class="input-group paste-input-group">
+                            <div> 
+                                <label for="resultText">Paste Your Result Sheet</label>
+                                <textarea id="resultText" rows="6" placeholder="Paste your result sheet text here..."></textarea>
+                            </div>
+                            <button class="paste-button" id="mobilePasteBtn">
+                                <i class="fas fa-paste"></i> Paste
+                            </button>
+                        </div>
+                        
+                        <button class="add-btn" id="parseResults">
+                            <i class="fas fa-magic"></i> Parse Results
+                        </button>
+                        
+                        <div id="parseStatus" class="status-bar" style="display: none;">
+                            <i class="fas fa-sync fa-spin"></i>
+                            <span>Processing your results...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-container">
+                        <div class="card-header"> <!-- Moved card-header here for reset button positioning -->
+                            <h3 class="card-title"><i class="fas fa-table"></i> Results</h3>
+                            <button class="action-btn" id="resetBtn" title="Reset all data">
+                                <i class="fas fa-trash-alt"></i> Reset
+                            </button>
+                        </div>
+                        
+                        <table id="resultTable">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Credits</th>
+                                    <th>Grade</th>
+                                    <th>Points</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultBody">
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Advanced Parsing</h3>
+                            <p>Intelligent result sheet extraction</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Removed Data Persistence Card -->
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Fast Processing</h3>
+                            <p>Optimized for large result sheets</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-export"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Professional Reports</h3>
+                            <p>Beautiful PDF and CSV exports</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="card sgpa-display">
+                    <div class="sgpa-label">Your Semester Grade Point Average</div>
+                    <div class="sgpa-value" id="sgpaValue">0.00</div>
+                    <div class="sgpa-scale">Scale: 0.00 - 10.00</div>
+                    <div class="chart-container">
+                        <canvas id="gradeChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 20px;"> <!-- Added margin-bottom for spacing -->
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-download"></i> Export Results</h2>
+                    </div>
+                    
+                    <div class="export-actions">
+                        <button class="export-btn pdf" id="exportPdf">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button class="export-btn csv" id="exportCsv">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Report Bug/Feedback Form (retained from previous valid version) -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-bug"></i> Report Bug / Feedback</h2>
+                    </div>
+                    <div class="input-group">
+                        <label for="feedbackText">Describe the issue or provide feedback:</label>
+                        <textarea id="feedbackText" rows="4" placeholder="e.g., Calculation error, layout issue, new feature request..."></textarea>
+                    </div>
+                    <button class="add-btn" id="sendFeedbackBtn">
+                        <i class="fas fa-paper-plane"></i> Send Feedback
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Created By Ankit Tiwari</p>
+            <a href="https://www.linkedin.com/in/ankit-k-tiwari/" target="_blank" class="linkedin-btn">
+                <i class="fab fa-linkedin"></i> LinkedIn
+            </a>
+            <p>Premium SGPA Calculator Pro &copy; 2025 | All calculations done locally on your device | Advanced Parsing Engine v3.0</p>
+        </footer>
+    </div>
+
+    <script>
+        // Disable right-click context menu
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Disable common keyboard shortcuts for developer tools
+        document.addEventListener('keydown', event => {
+            // F12
+            if (event.key === 'F12') {
+                event.preventDefault();
+            }
+            // Ctrl+Shift+I (or Cmd+Option+I on Mac)
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'I') {
+                event.preventDefault();
+            }
+            // Ctrl+Shift+J (or Cmd+Option+J on Mac)
+            if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'J') {
+                event.preventDefault();
+            }
+            // Ctrl+U (View Source)
+            if ((event.ctrlKey || event.metaKey) && event.key === 'U') {
+                event.preventDefault();
+            }
+        });
+
+
+        // DOM Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const addSubjectBtn = document.getElementById('addSubject');
+        const parseResultsBtn = document.getElementById('parseResults');
+        const resetBtn = document.getElementById('resetBtn');
+        const exportPdfBtn = document.getElementById('exportPdf');
+        const exportCsvBtn = document.getElementById('exportCsv');
+        const resultBody = document.getElementById('resultBody');
+        const sgpaValue = document.getElementById('sgpaValue');
+        const subjectNameInput = document.getElementById('subjectName');
+        const creditsInput = document.getElementById('credits');
+        const gradeInput = document.getElementById('grade');
+        const resultText = document.getElementById('resultText');
+        const parseStatus = document.getElementById('parseStatus');
+        const feedbackTextarea = document.getElementById('feedbackText');
+        const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
+        const mobilePasteBtn = document.getElementById('mobilePasteBtn'); // Reference to the new mobile paste button
+
+        // Grade mapping
+        const gradeMap = {
+            '10': 'A+',
+            '9': 'A',
+            '8': 'B+',
+            '7': 'B',
+            '6': 'C+',
+            '5': 'C',
+            '4': 'D',
+            '0': 'F', // Default for E/F/I
+            // Added explicit mappings for 'QUALIFIED' and 'ABSENT' to display as text
+            'QUALIFIED': 'Qualified',
+            'ABSENT': 'Absent'
+        };
+
+        const reverseGradeMap = {
+            'A+': 10,
+            'A': 9,
+            'B+': 8,
+            'B': 7,
+            'C+': 6,
+            'C': 5,
+            'D': 4,
+            'F': 0,
+            'E': 0,
+            'I': 0,
+            'QUALIFIED': 'QUALIFIED', // Map 'QUALIFIED' to itself to denote a special status
+            'ABSENT': 'ABSENT' // Map 'ABSENT' to itself
+        };
+
+        // Subject data
+        let subjects = [];
+
+        // Chart.js global settings for responsive text
+        Chart.defaults.font.family = 'Poppins';
+        // Chart.defaults.color will be updated dynamically by updateChartColors
+
+        // Initialize Chart
+        const ctx = document.getElementById('gradeChart').getContext('2d');
+        const gradeChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'F'],
+                datasets: [{
+                    data: [0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: [], /* Colors set dynamically by updateChartColors */
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '', /* Color set dynamically */
+                            font: {
+                                size: 11
+                            },
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.parsed} subjects`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // Function to update chart colors based on theme
+        function updateChartColors() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            // Set legend label color based on theme
+            gradeChart.options.plugins.legend.labels.color = isDarkMode ? getComputedStyle(document.body).getPropertyValue('--text-dark') : getComputedStyle(document.body).getPropertyValue('--text-light');
+            
+            // Set dataset background colors based on theme
+            if (isDarkMode) {
+                gradeChart.data.datasets[0].backgroundColor = [
+                    '#4cc9f0', '#4361ee', '#3a0ca3', '#7209b7',
+                    '#f72585', '#ff6b6b', '#ff9e00', '#adb5bd'
+                ];
+            } else {
+                // Light mode distinct colors (brighter)
+                gradeChart.data.datasets[0].backgroundColor = [
+                    '#1ABC9C', // Turquoise for A+
+                    '#2ECC71', // Emerald Green for A
+                    '#3498DB', // Peter River Blue for B+
+                    '#9B59B6', // Amethyst for B
+                    '#F1C40F', // Sunflower Yellow for C+
+                    '#E67E22', // Carrot Orange for C
+                    '#E74C3C', // Alizarin Red for D
+                    '#BDC3C7'  // Silver for F
+                ];
+            }
+            gradeChart.update();
+        }
+
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', 
+                document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            updateChartColors(); // Update chart colors when theme changes
+            updateSGPA(); // Recalculate SGPA display color if needed
+        });
+
+        // Tab Switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.classList.contains(tabName)) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // Auto-reset when switching tabs: Clear data and UI
+                subjects = []; 
+                renderSubjects();
+                updateSGPA();
+                updateChart();
+                
+                parseStatus.style.display = 'none'; // Hide status bar
+                subjectNameInput.value = '';
+                creditsInput.value = ''; // Clear credits input
+                gradeInput.value = ''; // Clear grade input
+                resultText.value = ''; // Clear paste textarea
+            });
+        });
+
+        // Mobile Paste Button functionality
+        mobilePasteBtn.addEventListener('click', async () => {
+            try {
+                // Attempt to read from clipboard
+                const text = await navigator.clipboard.readText();
+                resultText.value = text;
+                showStatus('Content pasted successfully!', false);
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                showStatus('Failed to paste. Please paste manually.', true);
+            }
+        });
+
+        // Add Subject
+        addSubjectBtn.addEventListener('click', () => {
+            const name = subjectNameInput.value.trim();
+            const credits = parseInt(creditsInput.value);
+            // Ensure grade is retrieved correctly for special cases
+            const gradeValue = gradeInput.value; 
+            let grade;
+
+            // Handle special grade strings from reverseGradeMap
+            if (gradeValue === 'QUALIFIED' || gradeValue === 'ABSENT') {
+                grade = gradeValue;
+            } else {
+                grade = parseInt(gradeValue);
+            }
+            
+            if (!name || isNaN(credits) || credits <= 0 || grade === undefined || grade === '') {
+                showStatus('Please fill all fields correctly with valid credits and select a grade.', true);
+                return;
+            }
+            
+            subjects.push({ 
+                name, 
+                credits, 
+                grade,
+                code: name.substring(0, 10).toUpperCase() // Generate simple code
+            });
+            
+            renderSubjects();
+            updateSGPA();
+            updateChart();
+            
+            // Clear inputs, keep them blank initially
+            subjectNameInput.value = '';
+            creditsInput.value = ''; 
+            gradeInput.value = ''; 
+            
+            showStatus('Subject added successfully!', false); // Show success status
+        });
+
+        // Function to strip HTML tags from a string
+        function stripHtmlTags(htmlString) {
+            const doc = new DOMParser().parseFromString(htmlString, 'text/html');
+            return doc.body.textContent || "";
+        }
+
+        // Helper function to parse a collected block of lines into a subject object
+        function parseSubjectBlock(blockLines, subjectCodePattern, numberPattern, gradePattern) {
+            let subject = { code: '', name: '', credits: 0, grade: undefined }; 
+            let nameParts = [];
+            let numericParts = []; 
+            let foundGradeText = ''; 
+            let isQualifiedOrAbsent = false;
+
+            const codeMatch = subjectCodePattern.exec(blockLines[0]);
+            if (!codeMatch) return null; 
+            subject.code = codeMatch[1];
+
+            for (let i = 1; i < blockLines.length; i++) {
+                const line = blockLines[i].trim();
+                if (line === "") continue;
+
+                const gradeMatch = gradePattern.exec(line);
+                if (gradeMatch) {
+                    foundGradeText = gradeMatch[1].toUpperCase(); 
+                    if (foundGradeText === 'QUALIFIED' || foundGradeText === 'ABSENT') {
+                        isQualifiedOrAbsent = true;
+                    }
+                    break; 
+                }
+
+                const numMatch = numberPattern.exec(line);
+                if (numMatch) {
+                    numericParts.push(parseFloat(numMatch[0]));
+                    continue;
+                }
+
+                if (!subjectCodePattern.test(line) && !line.includes("Disclaimer") && !line.includes("University") && !line.includes("Helpline") && !line.includes("Report a Bug")) {
+                    nameParts.push(line);
+                }
+            }
+
+            subject.name = nameParts.join(' ').trim();
+            
+            // If the grade is QUALIFIED or ABSENT, set the grade value as the string itself
+            if (isQualifiedOrAbsent) {
+                subject.grade = foundGradeText; 
+            } else {
+                subject.grade = reverseGradeMap[foundGradeText]; 
+            }
+            
+            if (numericParts.length > 0) {
+                subject.credits = numericParts[numericParts.length - 1];
+            } else {
+                subject.credits = 0; 
+            }
+
+            if (subject.code && !isNaN(subject.credits) && subject.credits > 0 && subject.grade !== undefined) { 
+                return subject;
+            }
+            return null; 
+        }
+
+        // Main parsing function with robust logic
+        function parseResultSheet(text) {
+            let rawText = text.trim();
+            if (rawText.includes('<') && rawText.includes('>')) {
+                rawText = stripHtmlTags(rawText);
+            }
+
+            const lines = rawText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            let parsedSubjects = [];
+
+            // Regex patterns for parsing (updated for credits to handle integers or decimals)
+            const subjectCodePattern = /^(\d{2}[A-Z]{3}-\d{3,4})$/i; 
+            const numberPattern = /^\d+(\.\d+)?$/; // Matches numbers like "49.84", "4", "4.00"
+            const gradePattern = /^([A-Z]+[+]?|Qualified|Absent|E|F|I)$/i; 
+
+            // Updated single-line subject regex to correctly capture integer or decimal credits
+            // Group 1: code, Group 2: name, Group 3: credits, Group 4: grade
+            const singleLineSubjectRegex = /^(\d{2}[A-Z]{3}-\d{3,4})\s+(.+?)\s+(?:(?:\d+(?:\.\d+)?|\s*)\s+){0,2}(\d+(?:\.\d+)?)\s+([A-Z]+[+]?|Qualified|Absent|E|F|I)$/i;
+
+
+            const endOfSubjectsKeywords = ["Disclaimer:", "University is not responsible", "General Helpline No:", "Email Id:", "Report a Bug", "Chandigarh University, Gharuan, Mohali (Punjab)"];
+
+            let currentBlockLines = [];
+            let isInsideSubjectBlock = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const trimmedLine = lines[i].trim();
+                if (trimmedLine === "") continue;
+
+                const lowerCaseLine = trimmedLine.toLowerCase();
+                const isEndOfSubjectsSection = endOfSubjectsKeywords.some(keyword => lowerCaseLine.includes(keyword.toLowerCase()));
+
+                if (isEndOfSubjectsSection) {
+                    if (isInsideSubjectBlock && currentBlockLines.length > 0) {
+                        const subject = parseSubjectBlock(currentBlockLines, subjectCodePattern, numberPattern, gradePattern);
+                        if (subject) parsedSubjects.push(subject);
+                    }
+                    isInsideSubjectBlock = false;
+                    currentBlockLines = [];
+                    continue;
+                }
+
+                const singleLineMatch = singleLineSubjectRegex.exec(trimmedLine);
+                if (singleLineMatch) {
+                    const gradeText = singleLineMatch[4].toUpperCase();
+                    parsedSubjects.push({
+                        code: singleLineMatch[1],
+                        name: singleLineMatch[2].trim(),
+                        credits: parseFloat(singleLineMatch[3]),
+                        grade: (gradeText === 'QUALIFIED' || gradeText === 'ABSENT') ? gradeText : reverseGradeMap[gradeText] 
+                    });
+                    isInsideSubjectBlock = false; 
+                    currentBlockLines = [];
+                    continue;
+                }
+
+                if (subjectCodePattern.test(trimmedLine)) {
+                    if (isInsideSubjectBlock && currentBlockLines.length > 0) {
+                        const subject = parseSubjectBlock(currentBlockLines, subjectCodePattern, numberPattern, gradePattern);
+                        if (subject) parsedSubjects.push(subject);
+                    }
+                    currentBlockLines = [trimmedLine]; 
+                    isInsideSubjectBlock = true;
+                } else if (isInsideSubjectBlock) {
+                    currentBlockLines.push(trimmedLine);
+                }
+            }
+
+            if (isInsideSubjectBlock && currentBlockLines.length > 0) {
+                const subject = parseSubjectBlock(currentBlockLines, subjectCodePattern, numberPattern, gradePattern);
+                if (subject) parsedSubjects.push(subject);
+            }
+            return parsedSubjects;
+        }
+
+        // Parse Results event listener
+        parseResultsBtn.addEventListener('click', () => {
+            const text = resultText.value.trim();
+            if (!text) {
+                showStatus('Please paste your result sheet', true);
+                parseStatus.style.display = 'none';
+                return;
+            }
+            
+            parseStatus.style.display = 'flex';
+            parseStatus.classList.remove('error');
+            parseStatus.innerHTML = '<i class="fas fa-sync fa-spin"></i> Processing your results...';
+            
+            setTimeout(() => {
+                try {
+                    const parsedSubjects = parseResultSheet(text);
+                    if (parsedSubjects.length === 0) {
+                        showStatus('No valid subjects found. Check your format.', true);
+                        parseStatus.style.display = 'none';
+                        return;
+                    }
+                    
+                    subjects = parsedSubjects;
+                    renderSubjects();
+                    updateSGPA();
+                    updateChart();
+                    
+                    showStatus(`Successfully parsed ${parsedSubjects.length} subjects!`, false);
+                    
+                    resultText.value = ''; 
+                    
+                } catch (error) {
+                    showStatus(`Error: ${error.message}`, true);
+                    console.error("Parsing error:", error); 
+                    parseStatus.style.display = 'none';
+                }
+            }, 100);
+        });
+
+        // Reset Data
+        resetBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to reset all data?')) {
+                subjects = [];
+                renderSubjects();
+                updateSGPA();
+                updateChart();
+                parseStatus.style.display = 'none'; 
+                showStatus('All data reset successfully!', false);
+            }
+        });
+
+        // Export PDF
+        exportPdfBtn.addEventListener('click', async () => {
+            if (subjects.length === 0) {
+                showStatus('No data to export', true);
+                return;
+            }
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                doc.setFontSize(22);
+                doc.setTextColor(67, 97, 238);
+                doc.text('SGPA Report', 105, 20, null, null, 'center');
+                doc.setFontSize(12);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Generated by SGPA Calculator Pro', 105, 28, null, null, 'center');
+                
+                const now = new Date();
+                const sgpa = calculateSGPA();
+                doc.setFontSize(14);
+                doc.setTextColor(document.body.classList.contains('dark-mode') ? 255 : 0); 
+
+                doc.text(`Date: ${now.toLocaleDateString()}`, 15, 40);
+                doc.text(`SGPA: ${sgpa.toFixed(2)}`, 15, 50);
+                
+                const headers = [['Subject Code', 'Subject Name', 'Credits', 'Grade', 'Points']];
+                
+                // Filter subjects for PDF export: only include those with numeric grades
+                const data = subjects.filter(s => typeof s.grade === 'number' && !isNaN(s.grade) && s.credits > 0)
+                                .map(subject => [
+                    subject.code,
+                    subject.name,
+                    subject.credits.toString(),
+                    gradeMap[subject.grade], 
+                    subject.grade.toString()
+                ]);
+                
+                doc.autoTable({
+                    startY: 60,
+                    head: headers,
+                    body: data,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [67, 97, 238],
+                        textColor: 255,
+                        fontStyle: 'bold'
+                    },
+                    styles: {
+                        cellPadding: 3,
+                        fontSize: 10,
+                        valign: 'middle',
+                        textColor: document.body.classList.contains('dark-mode') ? 255 : 0
+                    },
+                    margin: { top: 10 }
+                });
+                
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(10);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`Page ${i} of ${pageCount}`, 105, 287, null, null, 'center');
+                }
+                
+                doc.save(`SGPA_Report_${now.getTime()}.pdf`);
+                showStatus('PDF exported successfully!', false);
+            } catch (error) {
+                showStatus('Failed to generate PDF: ' + error.message, true);
+                console.error("PDF export error:", error);
+            }
+        });
+
+        // Export CSV
+        exportCsvBtn.addEventListener('click', () => {
+            if (subjects.length === 0) {
+                showStatus('No data to export', true);
+                return;
+            }
+            
+            try {
+                let csv = 'Subject Code,Subject Name,Credits,Grade,Points\n';
+                
+                // Filter subjects for CSV export: only include those with numeric grades
+                subjects.filter(s => typeof s.grade === 'number' && !isNaN(s.grade) && s.credits > 0)
+                         .forEach(subject => {
+                    csv += `"${subject.code}","${subject.name}",${subject.credits},"${gradeMap[subject.grade]}",${subject.grade}\n`;
+                });
+                
+                const sgpa = calculateSGPA();
+                csv += `\nSGPA,,,${sgpa.toFixed(2)}\n`; 
+                
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `sgpa_report_${new Date().getTime()}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showStatus('CSV exported successfully!', false);
+            } catch (error) {
+                showStatus('Failed to generate CSV: ' + error.message, true);
+                console.error("CSV export error:", error);
+            }
+        });
+
+        // Delete Subject
+        function deleteSubject(index) {
+            subjects.splice(index, 1);
+            renderSubjects();
+            updateSGPA();
+            updateChart();
+            showStatus('Subject deleted.', false); 
+        }
+
+        // Render Subjects
+        function renderSubjects() {
+            resultBody.innerHTML = '';
+            
+            if (subjects.length === 0) {
+                resultBody.innerHTML = `
+                    <tr class="empty-state">
+                        <td colspan="5">
+                            <i class="fas fa-inbox"></i>
+                            <p>No subjects added yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            subjects.forEach((subject, index) => {
+                const row = document.createElement('tr');
+                // Apply a different style for 'Qualified'/'Absent' subjects
+                const isSpecialGrade = (subject.grade === 'QUALIFIED' || subject.grade === 'ABSENT');
+                row.classList.toggle('bg-gray-100', isSpecialGrade);
+                row.classList.toggle('text-gray-500', isSpecialGrade);
+                row.classList.toggle('italic', isSpecialGrade);
+
+                // Determine the grade display text
+                let gradeDisplayText;
+                if (isSpecialGrade) {
+                    gradeDisplayText = subject.grade; // Display "QUALIFIED" or "ABSENT" directly
+                } else {
+                    gradeDisplayText = gradeMap[subject.grade] || 'N/A'; // Use gradeMap for numeric grades
+                }
+
+                // Determine points display: N/A for special grades, actual points for others
+                const pointsDisplayText = isSpecialGrade ? 'N/A' : (subject.grade !== undefined ? subject.grade : 'N/A');
+
+                row.innerHTML = `
+                    <td>
+                        <div><strong>${subject.code}</strong></div>
+                        <div style="font-size: 0.9em; opacity: 0.8;">${subject.name}</div>
+                    </td>
+                    <td>${subject.credits}</td>
+                    <td>${gradeDisplayText}</td> 
+                    <td>${pointsDisplayText}</td>
+                    <td class="actions">
+                        <button class="action-btn" title="Delete" onclick="deleteSubject(${index})">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                resultBody.appendChild(row);
+            });
+        }
+
+        // Calculate SGPA
+        function calculateSGPA() {
+            if (subjects.length === 0) return 0;
+            
+            let totalCredits = 0;
+            let totalPoints = 0;
+            
+            subjects.forEach(subject => {
+                // Only include subjects with valid numeric grades and positive credits for SGPA calculation
+                if (typeof subject.grade === 'number' && !isNaN(subject.grade) && subject.credits > 0) { 
+                    totalCredits += subject.credits;
+                    totalPoints += subject.credits * subject.grade;
+                }
+            });
+            
+            if (totalCredits === 0) return 0; 
+            
+            return (totalPoints / totalCredits);
+        }
+
+        // Update SGPA Display
+        function updateSGPA() {
+            const sgpa = calculateSGPA();
+            sgpaValue.textContent = sgpa.toFixed(2);
+            
+            sgpaValue.classList.add('highlight');
+            setTimeout(() => sgpaValue.classList.remove('highlight'), 2000);
+            
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                if (sgpa >= 9.0) {
+                    sgpaValue.style.color = '#4cc9f0';
+                } else if (sgpa >= 8.0) {
+                    sgpaValue.style.color = '#4361ee';
+                } else if (sgpa >= 7.0) {
+                    sgpaValue.style.color = '#7209b7';
+                } else if (sgpa >= 6.0) {
+                    sgpaValue.style.color = '#f72585';
+                } else {
+                    sgpaValue.style.color = '#ff6b6b';
+                }
+            } else {
+                sgpaValue.style.color = getComputedStyle(document.body).getPropertyValue('--text-dark');
+            }
+        }
+
+        // Update Chart
+        function updateChart() {
+            const gradeCount = {
+                'A+': 0, 'A': 0, 'B+': 0, 'B': 0,
+                'C+': 0, 'C': 0, 'D': 0, 'F': 0
+            };
+            
+            subjects.forEach(subject => {
+                // Only count subjects with numeric grades for the chart
+                if (typeof subject.grade === 'number' && !isNaN(subject.grade) && subject.credits > 0) {
+                    const grade = gradeMap[subject.grade];
+                    if (gradeCount.hasOwnProperty(grade)) {
+                        gradeCount[grade]++;
+                    }
+                }
+            });
+            
+            gradeChart.data.datasets[0].data = [
+                gradeCount['A+'], gradeCount['A'], gradeCount['B+'], gradeCount['B'],
+                gradeCount['C+'], gradeCount['C'], gradeCount['D'], gradeCount['F']
+            ];
+            
+            updateChartColors(); 
+            gradeChart.update();
+        }
+
+        // Save data to localStorage (now only for theme)
+        function saveData() {
+            localStorage.setItem('sgpaTheme', 
+                document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        // Load data from localStorage (now only for theme)
+        function loadData() {
+            const savedTheme = localStorage.getItem('sgpaTheme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode'); 
+            }
+        }
+
+        // Function to show status messages
+        function showStatus(message, isError) {
+            parseStatus.style.display = 'flex';
+            parseStatus.classList.toggle('error', isError);
+            parseStatus.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> <span>${message}</span>`;
+            if (!isError) {
+                setTimeout(() => {
+                    parseStatus.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Initialize
+        function init() {
+            localStorage.removeItem('sgpaData'); 
+            resultText.value = ''; 
+
+            loadData(); 
+            subjects = []; 
+            renderSubjects();
+            updateSGPA();
+            updateChart();
+            updateChartColors(); 
+            // Clear inputs for manual mode on initial load
+            subjectNameInput.value = '';
+            creditsInput.value = ''; 
+            gradeInput.value = ''; 
+        }
+
+        // Initialize the application
+        init();
+
+        // Send Feedback/Bug Report
+        sendFeedbackBtn.addEventListener('click', () => {
+            const feedback = feedbackTextarea.value.trim();
+            if (feedback) {
+                const subject = encodeURIComponent("SGPA Calculator Pro Feedback/Bug Report");
+                const body = encodeURIComponent(feedback);
+                window.location.href = `mailto:futureengineer9915@gmail.com?subject=${subject}&body=${body}`;
+                feedbackTextarea.value = ''; 
+            } else {
+                showStatus('Please enter your feedback or bug description.', true);
+            }
+        });
+    </script>
 </body>
 </html>
